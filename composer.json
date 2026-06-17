@@ -1,0 +1,18 @@
+{
+  "name": "schorts/shared-kernel",
+  "description": "Shared kernel value objects and domain abstractions",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Schorts\\SharedKernel\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Jorge Castillo",
+      "email": "schorts@outlook.com"
+    }
+  ],
+  "require": {}
+}

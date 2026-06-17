@@ -1,0 +1,22 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.1.0] - 2026-06-17
+
+## Added
+
+- Added Criteria module.
+- Added DAO module.
+- Added DomainEvent module.
+- Added Entity module.
+- Added Logger module.
+- Added Model module.
+- Added UnitOfWork module.
+- Added ValueObjects module.
+
+[0.1.0]: https://github.com/schorts99/shared-kernel-php/releases/tag/v0.1.0
+[@schorts99]: https://github.com/schorts99
