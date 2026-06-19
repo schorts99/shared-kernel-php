@@ -16,12 +16,12 @@ abstract class DAO
     $this->deleteMode = $deleteMode;
   }
 
-  abstract public function getAll(?UnitOfWork $uow = null): array;
-  abstract public function findByID(mixed $id, ?UnitOfWork $uow = null): ?Entity;
-  abstract public function findOneBy(Criteria $criteria, ?UnitOfWork $uow = null): ?Entity;
-  abstract public function search(Criteria $criteria, ?UnitOfWork $uow = null): array;
-  abstract public function countBy(Criteria $criteria, ?UnitOfWork $uow = null): int;
-  abstract public function exists(Criteria $criteria, ?UnitOfWork $uow = null): bool;
+  abstract public function getAll(?UnitOfWork $uow = null, bool $includeDeleted = false): array;
+  abstract public function findByID(mixed $id, ?UnitOfWork $uow = null, bool $includeDeleted = false): ?Entity;
+  abstract public function findOneBy(Criteria $criteria, ?UnitOfWork $uow = null, bool $includeDeleted = false): ?Entity;
+  abstract public function search(Criteria $criteria, ?UnitOfWork $uow = null, bool $includeDeleted = false): array;
+  abstract public function countBy(Criteria $criteria, ?UnitOfWork $uow = null, bool $includeDeleted = false): int;
+  abstract public function exists(Criteria $criteria, ?UnitOfWork $uow = null, bool $includeDeleted = false): bool;
   abstract public function create(Entity $entity, ?UnitOfWork $uow = null): Entity;
   abstract public function update(Entity $entity, ?UnitOfWork $uow = null): Entity;
   abstract public function save(Entity $entity, ?UnitOfWork $uow = null): Entity;
