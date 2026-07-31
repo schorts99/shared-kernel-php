@@ -47,6 +47,10 @@ use Schorts\SharedKernel\ValueObjects\EmailValue;
   - `DomainEventMetadata` and `DomainEventPrimitives` DTOs.
 - **Entities**
   - `Entity` base class with identity and domain event recording.
+- **Aggregate Roots**
+  - `AggregateRoot` abstract class with versioning, uncommitted-change tracking,
+domain-event recording / pulling (with sequence numbers), snapshots and
+`fromPrimitives` / `fromSnapshot` factory methods.
 - **DAO Abstraction**
   - `DAO` contract for persistence operations with support for `UnitOfWork` and delete modes.
 - **CQRS – Queries**
@@ -118,6 +122,79 @@ class UserEntity extends Entity {
     // return DTO representation
   }
 }
+```
+
+### Example: Aggregate Root
+
+```php
+use Schorts\SharedKernel\AggregateRoot\AggregateRoot;
+use Schorts\SharedKernel\ValueObjects\UUIDValue;
+use Schorts\SharedKernel\DomainEvent\DomainEvent;
+
+final class UserId extends UUIDValue
+{
+  public function getAttributeName(): string
+  {
+    return 'user_id';
+  }
+}
+
+final class UserRegistered extends DomainEvent
+{
+  public function getEventName(): string
+  {
+    return 'user.registered';
+  }
+}
+
+/**
+ * @extends AggregateRoot<UserId>
+ */
+final class User extends AggregateRoot
+{
+  private string $email;
+  private string $name;
+
+  public function __construct(UserId $id, string $email, string $name, int $version = 0)
+  {
+    parent::__construct($id, $version);
+
+    $this->email = $email;
+    $this->name = $name;
+  }
+
+  public static function register(UserId $id, string $email, string $name): self
+  {
+    $user = new self($id, $email, $name);
+    $user->recordDomainEvent(new UserRegistered(/* … */));
+
+    return $user;
+  }
+
+  public function toPrimitives(): array
+  {
+    return [
+      'email' => $this->email,
+      'name' => $this->name,
+    ];
+  }
+
+  protected function restoreFromPrimitives(array $data): void
+  {
+    $this->email = $data['email'];
+    $this->name = $data['name'];
+  }
+}
+
+// Create & record events
+$user = User::register(new UserId('…'), 'john@example.com', 'John');
+
+// Pull events (with sequence numbers) and clear the internal buffer
+$events = $user->pullDomainEvents();
+
+// Snapshot / restore
+$snapshot = $user->toSnapshot();
+$restored = User::fromSnapshot($snapshot);
 ```
 
 ### Example: Defining a Query
