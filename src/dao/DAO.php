@@ -5,7 +5,6 @@ namespace Schorts\SharedKernel\DAO;
 use Schorts\SharedKernel\Entity\Entity;
 use Schorts\SharedKernel\Criteria\Criteria;
 use Schorts\SharedKernel\UnitOfWork\UnitOfWork;
-use Schorts\SharedKernel\DAO\DeleteMode;
 
 interface DAO
 {
