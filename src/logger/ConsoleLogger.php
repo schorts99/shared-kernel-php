@@ -2,8 +2,6 @@
 
 namespace Schorts\SharedKernel\Logger;
 
-use Schorts\SharedKernel\Logger\Logger;
-
 enum LogLevel: string {
   case DEBUG = 'debug';
   case INFO  = 'info';
@@ -55,7 +53,7 @@ class ConsoleLogger extends Logger
   public function warn(string $message, array $context = []): void
   {
     if ($this->shouldLog(LogLevel::WARN)) {
-      fwrite(STDERR, $this->format('WARN', $message, $context) . PHP_EOL);
+      fwrite(\STDERR, $this->format('WARN', $message, $context) . PHP_EOL);
     }
   }
 
@@ -69,7 +67,7 @@ class ConsoleLogger extends Logger
         $errorContext['stack'] = $error->getTraceAsString();
       }
 
-      fwrite(STDERR, $this->format('ERROR', $message, $errorContext) . PHP_EOL);
+      fwrite(\STDERR, $this->format('ERROR', $message, $errorContext) . PHP_EOL);
     }
   }
 
@@ -80,8 +78,8 @@ class ConsoleLogger extends Logger
 
   private function format(string $level, string $message, array $context = []): string
   {
-    $timestamp = (new \DateTimeImmutable())->format(DATE_ATOM);
-    $contextStr = !empty($context) ? ' | Context: ' . json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : '';
+    $timestamp = (new \DateTimeImmutable())->format(\DATE_ATOM);
+    $contextStr = !empty($context) ? ' | Context: ' . json_encode($context, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES) : '';
 
     return sprintf("[%s] [%s] %s%s", $timestamp, $level, $message, $contextStr);
   }
