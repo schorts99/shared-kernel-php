@@ -29,7 +29,7 @@ abstract class AbstractQueryHandler implements QueryHandler
       cacheStore: $options->cacheStore,
       logger: $options->logger,
     );
-    $this->cache = $options->cache;
+    $this->cache = $options->cacheStore;
     $this->logger = $options->logger;
   }
 
