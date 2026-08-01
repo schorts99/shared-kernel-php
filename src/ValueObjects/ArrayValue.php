@@ -29,19 +29,53 @@ abstract class ArrayValue implements ValueObject
   abstract public function getAttributeName(): string;
   abstract public function isPrimitive(): bool;
 
-  public function isValid(): bool
+  private function validateRule(mixed $value, array $rule): bool
   {
-    foreach ($this->value as $item) {
-      if ($this->isPrimitive()) {
-        foreach ($this->schema as $rule) {
-          if (!$this->validateRule($item, $rule)) {
-            return false;
-          }
-        }
-      } else {
-        if (!$this->validateObject($item, $this->schema)) {
-          return false;
-        }
+    if (array_key_exists('required', $rule)) {
+      if ($rule['required'] && $value === null) {
+        return false;
+      }
+    }
+
+    if (isset($rule['greater_than'])) {
+      if (!is_numeric($value) || $value <= $rule['greater_than']) {
+        return false;
+      }
+    }
+
+    if (isset($rule['greater_than_or_equal'])) {
+      if (!is_numeric($value) || $value < $rule['greater_than_or_equal']) {
+        return false;
+      }
+    }
+
+    if (isset($rule['less_than'])) {
+      if (!is_numeric($value) || $value >= $rule['less_than']) {
+        return false;
+      }
+    }
+
+    if (isset($rule['less_than_or_equal'])) {
+      if (!is_numeric($value) || $value > $rule['less_than_or_equal']) {
+        return false;
+      }
+    }
+
+    if (isset($rule['type'])) {
+      if (gettype($value) !== $rule['type']) {
+        return false;
+      }
+    }
+
+    if (isset($rule['enum'])) {
+      if (!in_array($value, $rule['enum'], true)) {
+        return false;
+      }
+    }
+
+    if (isset($rule['custom']) && is_callable($rule['custom'])) {
+      if (!(bool) call_user_func($rule['custom'], $value)) {
+        return false;
       }
     }
 
@@ -53,7 +87,19 @@ abstract class ArrayValue implements ValueObject
     foreach ($schema as $key => $rulesOrNested) {
       $value = $obj[$key] ?? null;
 
-      if (is_array($rulesOrNested) && array_key_exists('_', $rulesOrNested) && is_array($value)) {
+      if (is_array($rulesOrNested) && array_key_exists('_', $rulesOrNested)) {
+        if (isset($rulesOrNested['required']) && $rulesOrNested['required'] && $value === null) {
+          return false;
+        }
+
+        if (isset($rulesOrNested['type']) && gettype($value) !== $rulesOrNested['type']) {
+          return false;
+        }
+
+        if (!is_array($value)) {
+          return false;
+        }
+
         foreach ($value as $item) {
           foreach ($rulesOrNested['_'] as $rule) {
             if (!$this->validateRule($item, $rule)) {
@@ -61,62 +107,55 @@ abstract class ArrayValue implements ValueObject
             }
           }
         }
-      } elseif (is_array($rulesOrNested) && $this->isRuleArray($rulesOrNested)) {
+
+        continue;
+      }
+
+      if ($this->isRuleArray($rulesOrNested)) {
         foreach ($rulesOrNested as $rule) {
           if (!$this->validateRule($value, $rule)) {
             return false;
           }
         }
-      } elseif (is_array($rulesOrNested) && $value !== null && is_array($value)) {
+
+        continue;
+      }
+
+      if (is_array($rulesOrNested) && is_array($value)) {
         if (!$this->validateObject($value, $rulesOrNested)) {
+          return false;
+        }
+
+        continue;
+      }
+
+      return false;
+    }
+
+    return true;
+  }
+
+  public function isValid(): bool
+  {
+    if (!is_array($this->value)) {
+      return false;
+    }
+
+    foreach ($this->value as $item) {
+      if ($this->isPrimitive()) {
+        foreach ($this->schema as $rule) {
+          if (!$this->validateRule($item, $rule)) {
+            return false;
+          }
+        }
+      } else {
+        if (!is_array($item) || !$this->validateObject($item, $this->schema)) {
           return false;
         }
       }
     }
 
     return true;
-  }
-
-  private function validateRule(mixed $value, array $rule): bool
-  {
-    if (isset($rule['required'])) {
-      return $value !== null;
-    }
-
-    if (isset($rule['greater_than'])) {
-      return is_numeric($value) && $value > $rule['greater_than'];
-    }
-
-    if (isset($rule['greater_than_or_equal'])) {
-      return is_numeric($value) && $value >= $rule['greater_than_or_equal'];
-    }
-
-    if (isset($rule['less_than'])) {
-      return is_numeric($value) && $value < $rule['less_than'];
-    }
-
-    if (isset($rule['less_than_or_equal'])) {
-      return is_numeric($value) && $value <= $rule['less_than_or_equal'];
-    }
-
-    if (isset($rule['type'])) {
-      return gettype($value) === $rule['type'];
-    }
-
-    if (isset($rule['enum'])) {
-      return in_array($value, $rule['enum'], true);
-    }
-
-    if (isset($rule['custom']) && is_callable($rule['custom'])) {
-      return (bool) call_user_func($rule['custom'], $value);
-    }
-
-    return true;
-  }
-
-  private function isRuleArray(array $arr): bool
-  {
-    return isset($arr[0]) && is_array($arr[0]);
   }
 
   public function equals(mixed $other): bool
@@ -129,7 +168,12 @@ abstract class ArrayValue implements ValueObject
       return false;
     }
 
-    return json_encode($this->value) === json_encode($other->getValue());
+    return $this->value == $other->getValue();
+  }  
+
+  private function isRuleArray(array $arr): bool
+  {
+    return isset($arr[0]) && is_array($arr[0]);
   }
 
   public function __toString(): string
