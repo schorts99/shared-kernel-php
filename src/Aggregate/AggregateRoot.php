@@ -78,17 +78,7 @@ abstract class AggregateRoot
 
   public static function fromPrimitives(array $model): static
   {
-    $id = $model['id'];
-    $version = $model['version'] ?? 0;
-    unset($model['id'], $model['version']);
-
-    $instance = new static($id, $version);
-
-    if (method_exists($instance, 'restoreFromPrimitives')) {
-      $instance->restoreFromPrimitives($model);
-    }
-
-    return $instance;
+    throw new \RuntimeException("Aggregate reconstruction not implemented.");
   }
 
   protected function restoreFromPrimitives(array $data): void {}
