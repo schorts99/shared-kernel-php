@@ -13,7 +13,7 @@ abstract class AbstractQuery implements Query
 
   public function __construct(
     string $correlationId,
-    array $payload,
+    ?array $payload = null,
     ?array $customMetadata = null,
   ) {
     $this->payload = $payload;
