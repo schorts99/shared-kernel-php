@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use Schorts\SharedKernel\CQRS\QueryHandler\QueryHandler;
 use Schorts\SharedKernel\CQRS\Query\Exceptions\QueryAlreadyRegistered;
 use Schorts\SharedKernel\CQRS\Query\Exceptions\QueryNotRegistered;
+use Schorts\SharedKernel\CQRS\Query\Exceptions\QueryHandlerNotRegistered;
 use Schorts\SharedKernel\CQRS\Query\Query;
 use Schorts\SharedKernel\CQRS\Query\QueryRegistry;
 use Schorts\SharedKernel\Exceptions\AggregateError;
@@ -64,6 +65,7 @@ class InMemoryQueryBus implements QueryBus
   /**
    * @throws Throwable
    * @throws QueryNotRegistered
+   * @throws QueryHandlerNotRegistered
    */
   public function dispatch(Query $query): mixed
   {
@@ -71,7 +73,7 @@ class InMemoryQueryBus implements QueryBus
     $handler = $this->handlers[$type] ?? null;
 
     if ($handler === null) {
-      throw new QueryNotRegistered($type);
+      throw new QueryHandlerNotRegistered($type);
     }
 
     $primitives = $query->toPrimitives();
