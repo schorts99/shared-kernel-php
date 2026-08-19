@@ -2,11 +2,14 @@
 
 namespace Schorts\SharedKernel\CQRS\QueryBus;
 
+use DateTimeImmutable;
 use Schorts\SharedKernel\CQRS\QueryHandler\QueryHandler;
 use Schorts\SharedKernel\CQRS\Query\Exceptions\QueryAlreadyRegistered;
 use Schorts\SharedKernel\CQRS\Query\Exceptions\QueryNotRegistered;
 use Schorts\SharedKernel\CQRS\Query\Query;
+use Schorts\SharedKernel\CQRS\Query\QueryRegistry;
 use Schorts\SharedKernel\Exceptions\AggregateError;
+use Throwable;
 
 class InMemoryQueryBus implements QueryBus
 {
@@ -25,6 +28,9 @@ class InMemoryQueryBus implements QueryBus
     );
   }
 
+  /**
+   * @throws QueryAlreadyRegistered
+   */
   public function register(string $type, QueryHandler $handler): void
   {
     if (isset($this->handlers[$type])) {
@@ -55,6 +61,10 @@ class InMemoryQueryBus implements QueryBus
     return array_keys($this->handlers);
   }
 
+  /**
+   * @throws Throwable
+   * @throws QueryNotRegistered
+   */
   public function dispatch(Query $query): mixed
   {
     $type = $query->getType();
@@ -64,45 +74,50 @@ class InMemoryQueryBus implements QueryBus
       throw new QueryNotRegistered($type);
     }
 
-    $startTime = new \DateTimeImmutable();
-    $correlationId = $query->getMetadata()->correlationId;
+    $primitives = $query->toPrimitives();
+    $deserializedQuery = QueryRegistry::fromPrimitives($primitives);
+    $startTime = new DateTimeImmutable();
+    $correlationId = $deserializedQuery->getMetadata()->correlationId;
     $context = new QueryBusContext(
       correlationId: $correlationId,
       startTime: $startTime,
-      metadata: $query->getMetadata()->toArray(),
+      metadata: $deserializedQuery->getMetadata()->toArray(),
       config: $this->config,
     );
 
     try {
       foreach ($this->middleware as $mw) {
-        $mw->beforeDispatch($query, $context);
+        $mw->beforeDispatch($deserializedQuery, $context);
       }
 
-      $result = $handler->handle($query);
+      $result = $handler->handle($deserializedQuery);
 
       foreach ($this->middleware as $mw) {
-        $mw->afterDispatch($query, $result, $context);
+        $mw->afterDispatch($deserializedQuery, $result, $context);
       }
 
       return $result;
-    } catch (\Throwable $error) {
+    } catch (Throwable $error) {
       foreach ($this->middleware as $mw) {
-        $mw->onError($query, $error, $context);
+        $mw->onError($deserializedQuery, $error, $context);
       }
 
       throw $error;
     }
   }
 
+  /**
+   * @throws AggregateError
+   */
   public function dispatchMany(array $queries): array
   {
     $results = [];
     $errors = [];
 
-    foreach ($queries as $index => $query) {
+    foreach ($queries as $query) {
       try {
         $results[] = $this->dispatch($query);
-      } catch (\Throwable $error) {
+      } catch (Throwable $error) {
         $errors[] = $error;
       }
     }

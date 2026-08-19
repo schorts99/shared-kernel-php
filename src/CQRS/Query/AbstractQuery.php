@@ -8,10 +8,15 @@ use Schorts\SharedKernel\CQRS\Query\QueryPrimitives;
 
 abstract class AbstractQuery implements Query
 {
+  protected array $payload;
   protected QueryMetadata $metadata;
 
-  public function __construct(string $correlationId, ?array $customMetadata = null)
-  {
+  public function __construct(
+    string $correlationId,
+    array $payload,
+    ?array $customMetadata = null,
+  ) {
+    $this->payload = $payload;
     $generateId = static fn (): string => sprintf(
       '%d-%s',
       (int) (microtime(true) * 1000),
@@ -50,7 +55,7 @@ abstract class AbstractQuery implements Query
         version: $this->metadata->version,
         user_id: $this->metadata->userId,
         tenant_id: $this->metadata->tenantId,
-        payload: [],
+        payload: $this->payload,
         headers: $this->metadata->headers,
         context: $this->metadata->context,
     );
