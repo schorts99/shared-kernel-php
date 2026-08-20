@@ -8,7 +8,7 @@ use Schorts\SharedKernel\CQRS\Query\QueryPrimitives;
 
 abstract class AbstractQuery implements Query
 {
-  protected array $payload;
+  protected ?array $payload;
   protected QueryMetadata $metadata;
 
   public function __construct(

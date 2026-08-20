@@ -14,7 +14,7 @@ final readonly class QueryPrimitives
     public int $version,
     public ?string $user_id,
     public ?string $tenant_id,
-    public array $payload,
+    public ?array $payload,
     public ?array $headers,
     public ?array $context,
   ) {}
