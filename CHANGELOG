@@ -1,0 +1,188 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.4] - 2026-08-23
+
+### Fixed
+
+- Fix folder names.
+
+## [1.0.3] - 2026-08-20
+
+### Fixed
+
+- The `AbstractQuery` was mismatching the payload type definition.
+
+## [1.0.2] - 2026-08-19
+
+### Changed
+
+- Allow null as payload on `Query`.
+
+## [1.0.1] - 2026-08-18
+
+### Added
+
+- Added `QueryHandlerNotRegistered` for better understanding.
+
+## [1.0.0] - 2026-08-18
+
+### Added
+
+- Added `QueryRegistry`.
+
+## [0.10.7] - 2026-08-03
+
+### Changed
+
+- Now `restoreFromPrimitives` should be implemented in Aggregates.
+
+## [0.10.6] - 2026-08-02
+
+### Changed
+
+- Move `LogLevel` to a separate file.
+
+## [0.10.5] - 2026-08-01
+
+### Fixed
+
+- Fix validations on `ArrayValue`.
+
+## [0.10.4] - 2026-07-31
+
+### Fixed
+
+- Rename `code` to `errorCode` on Query custom exceptions.
+
+## [0.10.3] - 2026-07-31
+
+### Fixed
+
+- Some constants were not available on `ConsoleLogger`.
+
+## [0.10.2] - 2026-07-31
+
+### Fixed
+
+- `AbstractQueryHandler` was assigning badly the values related to cache.
+
+## [0.10.1] - 2026-07-31
+
+### Fixed
+
+- Rename `console-logger` file to `ConsoleLogger`.
+
+## [0.10.0] - 2026-07-31
+
+### Added
+
+- Added `toArray` to `QueryPrimitives`.
+
+## [0.9.0] - 2026-07-31
+
+### Added
+
+- Added `AggregateRoot`.
+
+## [0.8.0] - 2026-07-31
+
+### Added
+
+- Added CQRS/Query related (Bus, Handler).
+
+## [0.7.2] - 2026-07-23
+
+### Changed
+
+- Convert `DAO` from `abstract class` to `interface`.
+
+## [0.7.1] - 2026-06-20
+
+### Changed
+
+- Rename folders to use Pascal Case.
+
+## [0.7.0] - 2026-06-20
+
+### Added
+
+- Added `Result`.
+
+## [0.6.0] - 2026-06-19
+
+### Added
+
+- Added `EntityNotRecoverable` exception.
+
+## [0.5.1] - 2026-06-19
+
+### Added
+
+- Added `includeDeleted` on DAO methods.
+
+## [0.5.0] - 2026-06-19
+
+### Added
+
+- Added `OrderNotValid` exception.
+
+## [0.4.0] - 2026-06-19
+
+### Added
+
+- Added `OperatorNotValid` exception.
+
+## [0.3.0] - 2026-06-19
+
+### Added
+
+- Added `EntityRegistry` to entity module.
+
+## [0.2.0] - 2026-06-19
+
+### Added
+
+- Added Formatters module.
+
+## [0.1.0] - 2026-06-17
+
+### Added
+
+- Added Criteria module.
+- Added DAO module.
+- Added DomainEvent module.
+- Added Entity module.
+- Added Logger module.
+- Added Model module.
+- Added UnitOfWork module.
+- Added ValueObjects module.
+
+[1.0.2]: https://github.com/schorts99/shared-kernel-php/compare/v1.0.1...v1.0.2
+[1.0.1]: https://github.com/schorts99/shared-kernel-php/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/schorts99/shared-kernel-php/compare/v0.10.7...v1.0.0
+[0.10.7]: https://github.com/schorts99/shared-kernel-php/compare/v0.10.6...v0.10.7
+[0.10.6]: https://github.com/schorts99/shared-kernel-php/compare/v0.10.5...v0.10.6
+[0.10.5]: https://github.com/schorts99/shared-kernel-php/compare/v0.10.4...v0.10.5
+[0.10.4]: https://github.com/schorts99/shared-kernel-php/compare/v0.10.3...v0.10.4
+[0.10.3]: https://github.com/schorts99/shared-kernel-php/compare/v0.10.2...v0.10.3
+[0.10.2]: https://github.com/schorts99/shared-kernel-php/compare/v0.10.1...v0.10.2
+[0.10.1]: https://github.com/schorts99/shared-kernel-php/compare/v0.10.0...v0.10.1
+[0.10.0]: https://github.com/schorts99/shared-kernel-php/compare/v0.9.0...v0.10.0
+[0.9.0]: https://github.com/schorts99/shared-kernel-php/compare/v0.8.0...v0.9.0
+[0.8.0]: https://github.com/schorts99/shared-kernel-php/compare/v0.7.2...v0.8.0
+[0.7.2]: https://github.com/schorts99/shared-kernel-php/compare/v0.7.1...v0.7.2
+[0.7.1]: https://github.com/schorts99/shared-kernel-php/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/schorts99/shared-kernel-php/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/schorts99/shared-kernel-php/compare/v0.5.1...v0.6.0
+[0.5.1]: https://github.com/schorts99/shared-kernel-php/compare/v0.5.0...v0.5.1
+[0.5.0]: https://github.com/schorts99/shared-kernel-php/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/schorts99/shared-kernel-php/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/schorts99/shared-kernel-php/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/schorts99/shared-kernel-php/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/schorts99/shared-kernel-php/releases/tag/v0.1.0
+[@schorts99]: https://github.com/schorts99
