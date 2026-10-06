@@ -76,12 +76,12 @@ abstract class AggregateRoot
 
   abstract public function toPrimitives(): array;
 
-  public static function fromPrimitives(array $model): static
+  public static function fromPrimitives(array $primitives): static
   {
     throw new \RuntimeException("Aggregate reconstruction not implemented.");
   }
 
-  protected function restoreFromPrimitives(array $data): void {}
+  protected function restoreFromPrimitives(array $primitives): void {}
 
   public function toSnapshot(): array
   {

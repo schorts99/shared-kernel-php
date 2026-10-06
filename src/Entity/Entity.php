@@ -3,7 +3,6 @@
 namespace Schorts\SharedKernel\Entity;
 
 use Schorts\SharedKernel\ValueObjects\ValueObject;
-use Schorts\SharedKernel\Model\Model;
 use Schorts\SharedKernel\DomainEvent\DomainEvent;
 
 abstract class Entity
@@ -56,9 +55,9 @@ abstract class Entity
     return $this->id->equals($other->getId());
   }
 
-  abstract public function toPrimitives(): Model;
+  abstract public function toPrimitives(): array;
 
-  public static function fromPrimitives(Model $model): Entity
+  public static function fromPrimitives(array $primitives): Entity
   {
     throw new \RuntimeException("Entity reconstruction not implemented.");
   }

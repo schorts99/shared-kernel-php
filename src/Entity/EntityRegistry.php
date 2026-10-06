@@ -3,7 +3,6 @@
 namespace Schorts\SharedKernel\Entity;
 
 use Schorts\SharedKernel\Entity\Exceptions\EntityNotRegistered;
-use Schorts\SharedKernel\Model\Model;
 
 final class EntityRegistry
 {
@@ -14,7 +13,7 @@ final class EntityRegistry
     self::$registry[$entityName] = $className;
   }
 
-  public static function fromPrimitives(string $entityName, Model $model): Entity
+  public static function fromPrimitives(string $entityName, array $primitives): Entity
   {
     if (!isset(self::$registry[$entityName])) {
       throw new EntityNotRegistered($entityName);
@@ -26,6 +25,6 @@ final class EntityRegistry
       throw new \InvalidArgumentException("$className must extend Entity");
     }
 
-    return $className::fromPrimitives($model);
+    return $className::fromPrimitives($primitives);
   }
 }
