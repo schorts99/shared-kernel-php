@@ -9,5 +9,6 @@ interface Query
 {
   public function getType(): string;
   public function getMetadata(): QueryMetadata;
+  public function getPayload(): ?array;
   public function toPrimitives(): QueryPrimitives;
 }

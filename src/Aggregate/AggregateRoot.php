@@ -1,20 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Schorts\SharedKernel\Aggregate;
 
-use Schorts\SharedKernel\ValueObjects\ValueObject;
+use RuntimeException;
 use Schorts\SharedKernel\DomainEvent\DomainEvent;
+use Schorts\SharedKernel\Entity\Entity;
+use Schorts\SharedKernel\ValueObjects\ValueObject;
 
-abstract class AggregateRoot
+abstract class AggregateRoot extends Entity
 {
-  private array $domainEvents = [];
+  /** @var array<DomainEvent> */
+  private array $recordedEvents = [];
   private int $version;
   private bool $uncommittedChanges = false;
 
   public function __construct(
-    public readonly ValueObject $id,
+    ValueObject $id,
     int $version = 0,
   ) {
+    parent::__construct($id);
     $this->version = $version;
   }
 
@@ -39,31 +45,53 @@ abstract class AggregateRoot
     $this->uncommittedChanges = false;
   }
 
+  /**
+   * @return array<DomainEvent>
+   */
   public function pullDomainEvents(): array
   {
     $events = [];
-    $count = count($this->domainEvents);
+    $count = count($this->recordedEvents);
     $baseSequence = $this->version - $count;
 
-    foreach ($this->domainEvents as $index => $event) {
+    foreach ($this->recordedEvents as $index => $event) {
       $event->sequenceNumber = $baseSequence + $index + 1;
       $events[] = $event;
     }
 
-    $this->domainEvents = [];
+    $this->recordedEvents = [];
 
     return $events;
   }
 
   public function recordDomainEvent(DomainEvent $domainEvent): void
   {
-    $this->domainEvents[] = $domainEvent;
-
+    $this->recordedEvents[] = $domainEvent;
     $this->incrementVersion();
   }
 
-  public function equals(AggregateRoot $other): bool
+  public function clearDomainEvents(): void
   {
+    if (count($this->recordedEvents) > 0) {
+      $this->version = max(0, $this->version - count($this->recordedEvents));
+      $this->recordedEvents = [];
+    }
+  }
+
+  public function equals(mixed $other): bool
+  {
+    if ($other === null || !$other instanceof AggregateRoot) {
+      return false;
+    }
+
+    if (get_class($this) !== get_class($other)) {
+      return false;
+    }
+
+    if ($this === $other) {
+      return true;
+    }
+
     return $this->id->equals($other->id);
   }
 
@@ -78,11 +106,14 @@ abstract class AggregateRoot
 
   public static function fromPrimitives(array $primitives): static
   {
-    throw new \RuntimeException("Aggregate reconstruction not implemented.");
+    throw new RuntimeException('Aggregate reconstruction not implemented.');
   }
 
   protected function restoreFromPrimitives(array $primitives): void {}
 
+  /**
+   * @return array{id: ValueObject, version: int, data: array}
+   */
   public function toSnapshot(): array
   {
     return [

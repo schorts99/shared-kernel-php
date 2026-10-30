@@ -38,6 +38,11 @@ abstract class AbstractQuery implements Query
 
   abstract public function getType(): string;
 
+  public function getPayload(): ?array
+  {
+    return $this->payload;
+  }
+
   public function getMetadata(): QueryMetadata
   {
     return $this->metadata;

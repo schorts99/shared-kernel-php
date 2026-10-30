@@ -8,11 +8,21 @@
       "Schorts\\SharedKernel\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Schorts\\SharedKernel\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  },
   "authors": [
     {
       "name": "Jorge Castillo",
       "email": "schorts@outlook.com"
     }
   ],
-  "require": {}
+  "require-dev": {
+    "phpunit/phpunit": "^13.4"
+  }
 }

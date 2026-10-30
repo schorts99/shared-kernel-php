@@ -1,31 +1,78 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Schorts\SharedKernel\CQRS\Query;
 
-use Schorts\SharedKernel\CQRS\Query\Exceptions\QueryNotRegistered;
-
 use DateTimeImmutable;
-use Exception;
+use Schorts\SharedKernel\CQRS\Query\Exceptions\QueryNotRegistered;
 
 final class QueryRegistry
 {
+  /** @var array<string, string|callable(QueryPrimitives): Query> */
   private static array $registry = [];
 
-  public static function register(string $queryType, string $constructor): void
+  /**
+   * @param string|callable(QueryPrimitives): Query $constructorOrFactory
+   */
+  public static function register(string $queryType, string|callable $constructorOrFactory): void
   {
-    self::$registry[$queryType] = $constructor;
+    self::$registry[$queryType] = $constructorOrFactory;
   }
 
-  /**
-   * @throws QueryNotRegistered
-   * @throws Exception
-   */
-  public static function fromPrimitives(QueryPrimitives $primitives): Query
+  public static function has(string $queryType): bool
   {
-    $constructor = self::$registry[$primitives->type] ?? null;
+    return isset(self::$registry[$queryType]);
+  }
 
-    if ($constructor === null) {
-      throw new QueryNotRegistered($primitives->type);
+  public static function unregister(string $queryType): bool
+  {
+    if (!isset(self::$registry[$queryType])) {
+      return false;
+    }
+
+    unset(self::$registry[$queryType]);
+    return true;
+  }
+
+  public static function clear(): void
+  {
+    self::$registry = [];
+  }
+
+  public static function fromPrimitives(QueryPrimitives|array $primitives): Query
+  {
+    if (is_array($primitives)) {
+      $primitives = new QueryPrimitives(
+        id: (string) ($primitives['id'] ?? ''),
+        type: (string) ($primitives['type'] ?? ''),
+        created_at: (string) ($primitives['created_at'] ?? $primitives['createdAt'] ?? ''),
+        correlation_id: (string) ($primitives['correlation_id'] ?? $primitives['correlationId'] ?? ''),
+        causation_id: $primitives['causation_id'] ?? $primitives['causationId'] ?? null,
+        request_id: $primitives['request_id'] ?? $primitives['requestId'] ?? null,
+        version: (int) ($primitives['version'] ?? 1),
+        user_id: $primitives['user_id'] ?? $primitives['userId'] ?? null,
+        tenant_id: $primitives['tenant_id'] ?? $primitives['tenantId'] ?? null,
+        payload: $primitives['payload'] ?? null,
+        headers: $primitives['headers'] ?? null,
+        context: $primitives['context'] ?? null,
+      );
+    }
+
+    $queryType = $primitives->type;
+
+    if (!isset(self::$registry[$queryType])) {
+      throw new QueryNotRegistered($queryType);
+    }
+
+    $constructor = self::$registry[$queryType];
+
+    if (is_callable($constructor)) {
+      return $constructor($primitives);
+    }
+
+    if (method_exists($constructor, 'fromPrimitives')) {
+      return $constructor::fromPrimitives($primitives);
     }
 
     return new $constructor(

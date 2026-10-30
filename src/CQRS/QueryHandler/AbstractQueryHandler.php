@@ -23,14 +23,14 @@ abstract class AbstractQueryHandler implements QueryHandler
     $this->options = new QueryHandlerOptions(
       cache: $options?->cache ?? false,
       cacheTtl: $options?->cacheTtl ?? 5 * 60 * 1000,
-      logging: $options->logging ?? false,
-      metrics: $options->metrics ?? false,
-      timeout: $options->timeout,
-      cacheStore: $options->cacheStore,
-      logger: $options->logger,
+      logging: $options?->logging ?? false,
+      metrics: $options?->metrics ?? false,
+      timeout: $options?->timeout,
+      cacheStore: $options?->cacheStore,
+      logger: $options?->logger,
     );
-    $this->cache = $options->cacheStore;
-    $this->logger = $options->logger;
+    $this->cache = $options?->cacheStore;
+    $this->logger = $options?->logger;
   }
 
   public function handle(Query $query, ?QueryHandlerContext $context = null): mixed

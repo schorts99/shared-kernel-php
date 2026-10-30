@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **CQRS Commands Pipeline**:
+  - `Command` interface, `AbstractCommand`, `CommandMetadata`, and `CommandPrimitives`.
+  - `CommandRegistry` for polymorphic hydration from primitives.
+  - `CommandHandler` interface and `AbstractCommandHandler` with validation, authorization, retry handling, idempotency integration, and structured logging.
+  - `InMemoryCommandBus` with full middleware chain (`CommandBusMiddleware`), Unit of Work transaction support, and bulk dispatch (`dispatchMany`).
+  - Error types: `CommandNotRegistered`, `CommandAlreadyRegistered`, `CommandHandlerNotRegistered`, `CommandValidationError`, `CommandAuthorizationError`, `CommandExecutionError`, `CommandMaxRetriesExceeded`.
+- **Event Bus & Messaging**:
+  - `EventBus` contract and `InMemoryEventBus` implementation with subscriber priority and automatic retries.
+  - `EventSubscriber` interface and `AbstractEventSubscriber`.
+  - `EventStore` interface and `InMemoryEventStore`.
+  - `DeadLetterStore` interface and `InMemoryDeadLetterStore`.
+  - `DomainEventRegistry` with polymorphic event reconstruction from primitives and `DomainEventNotRegistered` exception.
+- **Value Objects**:
+  - `HtmlValue`, `MarkdownValue`, and `PathValue` with normalization and directory traversal protection.
+  - `ValueNotValid` and `ValuesNotValid` domain validation exceptions.
+  - ValueObject interface now extends `\JsonSerializable` and `\Stringable`.
+- **Access Control (RBAC & ABAC)**:
+  - `Permission` value object with action/resource wildcard matching.
+  - `RBACPolicy` base class with role permissions and `can()` evaluation.
+  - `Predicate` contract for Attribute-Based Access Control (`canWithAttributes`, `canAnyWithAttributes`).
+- **Persistence & Testing**:
+  - `InMemoryDAO` implementation with criteria filtering, ordering, pagination, and soft/hard delete modes.
+  - `InMemoryUnitOfWork` and `TransactionalUnitOfWorkRunner`.
+  - `InMemoryCache` with TTL and tag invalidation.
+  - `InMemoryLogger` for testing and diagnostics.
+  - Complete PHPUnit test suite with 43 tests and 152 assertions.
+
+### Changed
+
+- `AggregateRoot` now extends `Entity`, unifying domain entity semantics.
+- Added `clearDomainEvents()` to `AggregateRoot`.
+- Enhanced `Result` with `fromCallable()`, `toPrimitives()`, `fromPrimitives()`, `unwrap()`, and `unwrapOr()`.
+- Enhanced `Criteria` with fluent convenience methods (`whereEqual`, `whereIn`, `whereBetween`, etc.) and allowed 0-based offset pagination.
+- Enhanced `QueryRegistry` and `EntityRegistry` with `has()`, `unregister()`, `clear()`, and factory support.
+- Fixed `InMemoryQueryBus` to safely handle unregistered query types without throwing errors.
+- Fixed nullsafe property accesses in `AbstractQueryHandler`.
+
 ## [2.0.0] - 2026-10-05
 
 ### Changed

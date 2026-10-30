@@ -77,7 +77,9 @@ class InMemoryQueryBus implements QueryBus
     }
 
     $primitives = $query->toPrimitives();
-    $deserializedQuery = QueryRegistry::fromPrimitives($primitives);
+    $deserializedQuery = QueryRegistry::has($primitives->type)
+      ? QueryRegistry::fromPrimitives($primitives)
+      : $query;
     $startTime = new DateTimeImmutable();
     $correlationId = $deserializedQuery->getMetadata()->correlationId;
     $context = new QueryBusContext(

@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Schorts\SharedKernel\Result;
 
+use JsonSerializable;
+use RuntimeException;
 use Throwable;
 
-final class Result
+final class Result implements JsonSerializable
 {
   private bool $isSuccess;
   private mixed $value;
@@ -17,7 +21,7 @@ final class Result
     $this->error = $error;
   }
 
-  public static function success(mixed $value): self
+  public static function success(mixed $value = null): self
   {
     return new self(true, $value, null);
   }
@@ -32,6 +36,25 @@ final class Result
     return self::failure($error);
   }
 
+  /**
+   * Safely execute a callable that might throw an exception, returning a Result.
+   */
+  public static function fromCallable(callable $fn, ?callable $mapError = null): self
+  {
+    try {
+      $val = $fn();
+      return self::success($val);
+    } catch (Throwable $e) {
+      if ($mapError !== null) {
+        return self::failure($mapError($e));
+      }
+      return self::failure($e);
+    }
+  }
+
+  /**
+   * @param array<Result> $results
+   */
   public static function combine(array $results): self
   {
     $values = [];
@@ -64,7 +87,7 @@ final class Result
         throw $this->error;
       }
 
-      throw new \RuntimeException("Result failure: " . (string)$this->error);
+      throw new RuntimeException('Result failure: ' . (string) $this->error);
     }
 
     return $this->value;
@@ -73,10 +96,20 @@ final class Result
   public function getError(): mixed
   {
     if ($this->isSuccess()) {
-      throw new \RuntimeException("Cannot get error from a success result");
+      throw new RuntimeException('Cannot get error from a success result');
     }
 
     return $this->error;
+  }
+
+  public function unwrap(): mixed
+  {
+    return $this->getValue();
+  }
+
+  public function unwrapOr(mixed $defaultValue): mixed
+  {
+    return $this->getOrElse($defaultValue);
   }
 
   public function map(callable $fn): self
@@ -128,5 +161,74 @@ final class Result
     return $this->isSuccess()
       ? $onSuccess($this->getValue())
       : $onFailure($this->getError());
+  }
+
+  /**
+   * @return array{isSuccess: bool, value?: mixed, error?: mixed}
+   */
+  public function toPrimitives(): array
+  {
+    if ($this->isSuccess()) {
+      $val = $this->value;
+      if (is_object($val) && method_exists($val, 'toPrimitives')) {
+        $val = $val->toPrimitives();
+      }
+
+      return [
+        'isSuccess' => true,
+        'value' => $val,
+      ];
+    }
+
+    $err = $this->error;
+    if (is_object($err) && method_exists($err, 'toPrimitives')) {
+      $err = $err->toPrimitives();
+    } elseif ($err instanceof Throwable) {
+      $err = [
+        'name' => get_class($err),
+        'message' => $err->getMessage(),
+        'code' => $err->getCode(),
+      ];
+    }
+
+    return [
+      'isSuccess' => false,
+      'error' => $err,
+    ];
+  }
+
+  /**
+   * @param array{isSuccess: bool, value?: mixed, error?: mixed} $primitives
+   */
+  public static function fromPrimitives(
+    array $primitives,
+    ?callable $hydrateValue = null,
+    ?callable $hydrateError = null,
+  ): self {
+    $isSuccess = (bool) ($primitives['isSuccess'] ?? false);
+
+    if ($isSuccess) {
+      $rawVal = $primitives['value'] ?? null;
+      $val = $hydrateValue !== null ? $hydrateValue($rawVal) : $rawVal;
+      return self::success($val);
+    }
+
+    $rawErr = $primitives['error'] ?? null;
+    if ($hydrateError !== null) {
+      return self::failure($hydrateError($rawErr));
+    }
+
+    if (is_array($rawErr) && isset($rawErr['message'])) {
+      $msg = (string) $rawErr['message'];
+      $code = isset($rawErr['code']) && is_int($rawErr['code']) ? $rawErr['code'] : 0;
+      return self::failure(new RuntimeException($msg, $code));
+    }
+
+    return self::failure($rawErr);
+  }
+
+  public function jsonSerialize(): mixed
+  {
+    return $this->toPrimitives();
   }
 }

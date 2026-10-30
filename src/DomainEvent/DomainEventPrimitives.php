@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Schorts\SharedKernel\DomainEvent;
 
-class DomainEventPrimitives
+use JsonSerializable;
+
+class DomainEventPrimitives implements JsonSerializable
 {
   public string $id;
   public string $type;
@@ -15,6 +19,7 @@ class DomainEventPrimitives
   public ?string $tenantId;
   /** @var array<string,mixed> */
   public array $payload;
+  /** @var array<string,mixed> */
   public array $meta;
 
   public function __construct(
@@ -41,5 +46,30 @@ class DomainEventPrimitives
     $this->tenantId = $tenantId;
     $this->payload = $payload;
     $this->meta = $meta;
+  }
+
+  /**
+   * @return array<string,mixed>
+   */
+  public function toArray(): array
+  {
+    return [
+      'id' => $this->id,
+      'type' => $this->type,
+      'occurredAt' => $this->occurredAt,
+      'correlationId' => $this->correlationId,
+      'causationId' => $this->causationId,
+      'requestId' => $this->requestId,
+      'version' => $this->version,
+      'userId' => $this->userId,
+      'tenantId' => $this->tenantId,
+      'payload' => $this->payload,
+      'meta' => $this->meta,
+    ];
+  }
+
+  public function jsonSerialize(): mixed
+  {
+    return $this->toArray();
   }
 }

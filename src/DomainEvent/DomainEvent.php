@@ -1,13 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Schorts\SharedKernel\DomainEvent;
 
 use DateTimeImmutable;
+use DateTimeInterface;
 
 abstract class DomainEvent
 {
   protected array $payload;
   protected DomainEventMetadata $metadata;
+  public ?int $sequenceNumber = null;
+  public mixed $ack = null;
+  public mixed $requeue = null;
 
   public function __construct(
     string $correlationId,
@@ -16,9 +22,11 @@ abstract class DomainEvent
   ) {
     $this->payload = $payload;
 
-    $generateId = function (): string {
-      return (string) (microtime(true) * 1000) . '-' . substr(bin2hex(random_bytes(6)), 0, 11);
-    };
+    $generateId = static fn (): string => sprintf(
+      '%d-%s',
+      (int) (microtime(true) * 1000),
+      substr(bin2hex(random_bytes(6)), 0, 11)
+    );
 
     $this->metadata = $customMetadata ?? new DomainEventMetadata(
       id: $generateId(),
@@ -42,9 +50,64 @@ abstract class DomainEvent
     return $this->metadata->id;
   }
 
+  public function getPayload(): array
+  {
+    return $this->payload;
+  }
+
   public function getMetadata(): DomainEventMetadata
   {
     return $this->metadata;
+  }
+
+  public function getOccurredAt(): DateTimeImmutable
+  {
+    return $this->metadata->occurredAt;
+  }
+
+  public function getCorrelationId(): string
+  {
+    return $this->metadata->correlationId;
+  }
+
+  public function getCausationId(): ?string
+  {
+    return $this->metadata->causationId;
+  }
+
+  public function getRequestId(): ?string
+  {
+    return $this->metadata->requestId;
+  }
+
+  public function getVersion(): int
+  {
+    return $this->metadata->version;
+  }
+
+  public function getUserId(): ?string
+  {
+    return $this->metadata->userId;
+  }
+
+  public function getTenantId(): ?string
+  {
+    return $this->metadata->tenantId;
+  }
+
+  public function getRetries(): int
+  {
+    return $this->metadata->retries;
+  }
+
+  public function getHeaders(): ?array
+  {
+    return $this->metadata->headers;
+  }
+
+  public function getContext(): ?array
+  {
+    return $this->metadata->context;
   }
 
   public function toPrimitives(): DomainEventPrimitives
@@ -52,7 +115,7 @@ abstract class DomainEvent
     return new DomainEventPrimitives(
       id: $this->metadata->id,
       type: $this->getEventName(),
-      occurredAt: $this->metadata->occurredAt->format(DateTimeImmutable::ATOM),
+      occurredAt: $this->metadata->occurredAt->format(DateTimeInterface::ATOM),
       correlationId: $this->metadata->correlationId,
       causationId: $this->metadata->causationId,
       requestId: $this->metadata->requestId,
@@ -95,9 +158,8 @@ abstract class DomainEvent
 
   public function addContext(string $key, mixed $value): void
   {
-    $this->metadata->context = array_merge($this->metadata->context ?? [], [$key => $value]);
+    $context = $this->metadata->context ?? [];
+    $context[$key] = $value;
+    $this->metadata->context = $context;
   }
-
-  public $ack = null;
-  public $requeue = null;
 }

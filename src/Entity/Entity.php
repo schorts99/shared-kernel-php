@@ -1,25 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Schorts\SharedKernel\Entity;
 
-use Schorts\SharedKernel\ValueObjects\ValueObject;
 use Schorts\SharedKernel\DomainEvent\DomainEvent;
+use Schorts\SharedKernel\ValueObjects\ValueObject;
 
 abstract class Entity
 {
-  protected ValueObject $id;
   private array $domainEvents = [];
 
-  public function __construct(ValueObject $id)
-  {
-    $this->id = $id;
-  }
+  public function __construct(
+    public readonly ValueObject $id,
+  ) {}
 
   public function getId(): ValueObject
   {
     return $this->id;
   }
 
+  /**
+   * @return array<DomainEvent>
+   */
   public function pullDomainEvents(): array
   {
     $events = $this->domainEvents;
@@ -59,6 +62,6 @@ abstract class Entity
 
   public static function fromPrimitives(array $primitives): Entity
   {
-    throw new \RuntimeException("Entity reconstruction not implemented.");
+    throw new \RuntimeException('Entity reconstruction not implemented.');
   }
 }
