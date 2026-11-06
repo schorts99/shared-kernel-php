@@ -186,7 +186,11 @@ abstract class ArrayValue implements ValueObject
 
       if (is_array($rulesOrNested)) {
         if ($value === null) {
-          continue;
+          if (!$this->schemaHasRequiredField($rulesOrNested)) {
+            continue;
+          }
+
+          return false;
         }
 
         if (!is_array($value) || array_is_list($value)) {
@@ -216,6 +220,29 @@ abstract class ArrayValue implements ValueObject
       }
 
       return false;
+    }
+
+    return false;
+  }
+
+  private function schemaHasRequiredField(array $schema): bool
+  {
+    foreach ($schema as $rulesOrNested) {
+      if (!is_array($rulesOrNested) || array_key_exists('_', $rulesOrNested)) {
+        continue;
+      }
+
+      if ($this->isRuleArray($rulesOrNested)) {
+        if ($this->schemaHasRequired($rulesOrNested)) {
+          return true;
+        }
+
+        continue;
+      }
+
+      if ($this->schemaHasRequiredField($rulesOrNested)) {
+        return true;
+      }
     }
 
     return false;

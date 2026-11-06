@@ -134,4 +134,38 @@ final class ValueObjectsTest extends TestCase
     $this->assertTrue($valid->isValid());
     $this->assertFalse($invalid->isValid());
   }
+
+  public function testArrayValueValidatesRequiredFieldsInMissingNestedObjects(): void
+  {
+    $value = new class([['id' => 1]], ['profile' => ['name' => [['required' => true]]]]) extends ArrayValue {
+      public function getAttributeName(): string { return 'users'; }
+      public function isPrimitive(): bool { return false; }
+    };
+
+    $this->assertFalse($value->isValid());
+  }
+
+  public function testArrayValueAllowsMissingOptionalNestedObjects(): void
+  {
+    $value = new class([['id' => 1]], ['profile' => ['nickname' => [['type' => 'string']]]]) extends ArrayValue {
+      public function getAttributeName(): string { return 'users'; }
+      public function isPrimitive(): bool { return false; }
+    };
+
+    $this->assertTrue($value->isValid());
+  }
+
+  public function testObjectValueValidatesRequiredFieldsInMissingNestedObjects(): void
+  {
+    $schema = ['profile' => ['name' => [['required' => true]]]];
+    $value = new class(['profile' => []], $schema) extends ObjectValue {
+      public function getAttributeName(): string { return 'user'; }
+    };
+    $missingParent = new class([], $schema) extends ObjectValue {
+      public function getAttributeName(): string { return 'user'; }
+    };
+
+    $this->assertFalse($value->isValid());
+    $this->assertFalse($missingParent->isValid());
+  }
 }
